@@ -38,6 +38,7 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "clap",
+ "textplots",
  "tokio 0.3.3",
  "yahoo_finance_api",
 ]
@@ -136,6 +137,12 @@ name = "core-foundation-sys"
 version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ea221b5284a47e40033bf9b66f35f984ec0ea2931eb03505246cd27a963f981b"
+
+[[package]]
+name = "drawille"
+version = "0.2.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "81e127c19c76f5610bb32f6a5f5d1ce5a5374fedba554f05cf5599e3041cd634"
 
 [[package]]
 name = "dtoa"
@@ -1043,6 +1050,15 @@ dependencies = [
  "redox_syscall",
  "remove_dir_all",
  "winapi 0.3.9",
+]
+
+[[package]]
+name = "textplots"
+version = "0.5.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4fb857fab218e0e676236f3cb23309ac748cba7d8fcbea3247701a5421725b17"
+dependencies = [
+ "drawille",
 ]
 
 [[package]]

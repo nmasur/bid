@@ -9,5 +9,6 @@ edition = "2018"
 [dependencies]
 chrono = "0.4.19"
 clap = "2.33.3"
+textplots = "0.5.3"
 tokio = { version = "0.3.3", features = ["full"] }
 yahoo_finance_api = "1.0.2"
