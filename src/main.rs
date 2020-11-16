@@ -1,7 +1,6 @@
 use anyhow::{anyhow, Context, Result};
 use clap::{crate_version, App, Arg, ArgMatches};
 use regex::Regex;
-use std::num::NonZeroU8;
 use std::str::FromStr;
 use textplots::{Chart, Plot, Shape};
 use yahoo_finance_api as yahoo;
@@ -9,7 +8,9 @@ use yahoo_finance_api as yahoo;
 #[tokio::main]
 async fn main() -> Result<()> {
     let matches = arguments();
-    let ticker = matches.value_of("ticker").unwrap();
+    let ticker = matches
+        .value_of("ticker")
+        .context("Must provide stock ticker as argument")?;
     let time = match matches.value_of("time") {
         Some(time) => parse_time(time.to_string()),
         None => Ok(TimeRange {
@@ -24,11 +25,13 @@ async fn main() -> Result<()> {
     let response = provider
         .get_quote_range(ticker, &interval.to_string(), &time.to_string())
         .await
-        .unwrap();
-    let last_quote = response.last_quote().unwrap();
+        .context("Error from Yahoo Finance!")?;
+    let last_quote = response.last_quote().context("No stock quote available!")?;
     println!("{}: ${:.2?}", ticker.to_uppercase(), last_quote.close);
 
-    let quotes = response.quotes().unwrap();
+    let quotes = response
+        .quotes()
+        .context("Quotes not found for this stock!")?;
     let points: Vec<(f32, f32)> = quotes
         .iter()
         .enumerate()
@@ -67,7 +70,7 @@ impl FromStr for TimeUnit {
 
 #[derive(Debug, PartialEq)]
 struct TimeRange {
-    scalar: u8,
+    scalar: u64,
     unit: TimeUnit,
 }
 
@@ -89,19 +92,27 @@ impl ToString for TimeRange {
 }
 
 fn parse_time(input: String) -> Result<TimeRange> {
-    let time_regex = Regex::new(r"^([1-9]\d*)*([hdwmy])$").unwrap();
+    let time_regex = Regex::new(r"^([1-9]\d*)*([hdwmy])$").context("Failed to compile regex")?;
     let captures = time_regex
         .captures(&input)
-        .context("Failed to parse regex")?;
-    let scalar = captures
-        .get(1)
-        .context("Failed to parse")?
-        .as_str()
-        .parse::<u8>()
-        .context("Not a number")?;
+        .context("Not valid time range; try h, d, m, y")?;
+    let scalar = match captures.get(1) {
+        Some(regex_match) => regex_match
+            .as_str()
+            .parse::<u64>()
+            .context("Not a number")?,
+        None => 1 as u64,
+    };
+    // let scalar = captures
+    //     .get(1)
+    //     .or_else(|| Some(1))
+    //     .context("Failed to parse")?
+    //     .as_str()
+    //     .parse::<u8>()
+    //     .context("Not a number")?;
     let unit = captures
         .get(2)
-        .context("Failed second group")?
+        .context("Time range unit not provided")?
         .as_str()
         .parse::<TimeUnit>()?;
     Ok(TimeRange { scalar, unit })
@@ -123,7 +134,7 @@ fn calculate_interval(time_range: &TimeRange) -> TimeRange {
         3_601..=172_800 => TimeUnit::Hour,
         // 172_801..=2_592_000 => TimeUnit::Day,
         // 172_801..=7_776_000 => TimeUnit::Week,
-        172_801..=7_776_000 => TimeUnit::Day,
+        172_801..=20_000_000 => TimeUnit::Day,
         _ => TimeUnit::Month,
     };
     TimeRange {
