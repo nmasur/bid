@@ -2,6 +2,8 @@ on:
   push:
     paths:
       - 'src/**'
+      - 'Cargo.lock'
+      - 'Cargo.toml'
   pull_request:
     branches:
       - master
