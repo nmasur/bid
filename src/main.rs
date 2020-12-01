@@ -25,7 +25,7 @@ async fn main() -> Result<()> {
     let response = provider
         .get_quote_range(ticker, &interval.to_string(), &time.to_string())
         .await
-        .context("Error from Yahoo Finance!")?;
+        .context("Error from Yahoo Finance!")?; //TODO: better errors
     let last_quote = response.last_quote().context("No stock quote available!")?;
     println!("{}: ${:.2?}", ticker.to_uppercase(), last_quote.close);
 
